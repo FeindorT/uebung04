@@ -1,6 +1,8 @@
 package ueb04;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
@@ -10,16 +12,92 @@ class SetImpl<T extends Comparable<T>> implements Set<T> {
 	 */
 	@Override
 	public Iterator<T> iterator() {
-		// Iterator implementieren...
-		throw new UnsupportedOperationException();
+
+		return new Iterator<T>() {
+
+            List<Element> agenda = new LinkedList<>();
+
+            {
+                if (root != null)
+                    agenda.add(root);
+            }
+
+            @Override
+            public boolean hasNext() {
+                return agenda.size() > 0;
+            }
+
+            @Override
+            public T next() {
+
+                Element e = agenda.remove(0);
+
+                if (e.left != null)
+                    agenda.add(e.left);
+
+                if (e.right != null)
+                    agenda.add(e.right);
+
+                return e.val;
+
+            }
+        };
+
 	}
 
 	/**
 	 * Bonusaufgabe: Gibt einen Iterator zurück, welcher nur die Knoten
 	 */
-	public Iterator<T> leafIterator() {
-		throw new UnsupportedOperationException();
-	}
+	public Iterator<T> leafIterator(){
+	    return new Iterator<T>() {
+
+	        // Für eine Tiefensuche Stack verwenden
+            Stack<Element> agenda = new StackImpl<>();
+
+            Element next;
+
+            {
+                if (root != null) {
+                    agenda.push(root);
+                    next = findNextLeaf();
+                }
+            }
+
+            private Element findNextLeaf(){
+
+                while (agenda.size() > 0){
+
+                    Element element = agenda.pop();
+
+                    if (element.left == null && element.right == null)
+                        return element;
+                    if (element.left != null)
+                        agenda.push(element.left);
+                    if (element.right != null)
+                        agenda.push(element.right);
+
+
+                }
+                return null;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return next != null;
+            }
+
+            @Override
+            public T next() {
+
+                Element n = next;
+
+                next = findNextLeaf();
+
+                return n.val;
+            }
+        };
+
+    }
 
 	private class Element {
 		T val;
